@@ -44,8 +44,9 @@ function ProductCard_(props, ref) {
               e.preventDefault();
               setLearnMoreActive(true);
             }}
+            ariaLabel={`Find out more about ${tool.name}`}
           >
-            {tool.name}
+            Find Out More
           </TitleLearnMoreButton>
         }
         ratings={
