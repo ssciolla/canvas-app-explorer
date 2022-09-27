@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: redis
+        org: umich
+        project: canvas-app-explorer
+        variant: dev
+    spec:
+      containers:
+      - image: redis:7
+        name: redis
+        command: [
+          "redis-server",
+          "--stop-writes-on-bgsave-error",
+          "no",
+          "--include",
+          "/usr/local/etc/redis/redis.conf"
+        ]
+        resources: {}
+        volumeMounts:
+        - name: redis-conf-vol
+          mountPath: "/usr/local/etc/redis/"
+      volumes:
+      - name: redis-conf-vol
+        secret:
+          secretName: redis-conf
+      restartPolicy: Always
+status: {}

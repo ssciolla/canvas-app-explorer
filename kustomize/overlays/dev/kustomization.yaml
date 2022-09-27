@@ -11,3 +11,8 @@ configMapGenerator:
     behavior: replace
     envs:
     - secret/configmap-dev.properties
+secretGenerator:
+  - name: redis-conf
+    behavior: replace
+    files:
+    - ./secret/redis.conf
