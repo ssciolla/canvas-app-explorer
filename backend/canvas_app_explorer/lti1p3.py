@@ -1,7 +1,7 @@
 import logging, random, string, urllib.parse
 from collections import namedtuple
 from datetime import datetime
-from typing import Any, Dict, Union
+from typing import Any, Callable, Dict, Union, Tuple
 
 from django.conf import settings
 from django.contrib.auth import login as django_login
@@ -10,6 +10,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.html import escape
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from pylti1p3.contrib.django import DjangoOIDCLogin, DjangoMessageLaunch, \
@@ -45,6 +46,23 @@ def lti_error(error_message: Any) -> JsonResponse:
     """
     logger.error(f'LTI error: {error_message}')
     return JsonResponse({'lti_error': f'{error_message}'}, status=500)
+
+
+def escape_request_data(view_func: Callable[[HttpRequest], HttpRequest]):
+
+    def wrapper(*args: HttpRequest, **kwargs):
+        request = args[0]
+        logger.debug(request.method)
+
+        if request.method in ['GET', 'POST']:
+            request_data_copy = getattr(request, request.method).copy()
+            for key in request_data_copy:
+                request_data_copy[key] = escape(request_data_copy[key])
+            setattr(request, request.method, request_data_copy)
+            logger.debug(getattr(request, request.method))
+
+        return view_func(request)
+    return wrapper
 
 
 def generate_jwks() -> Dict[str, list]:
@@ -165,6 +183,7 @@ def create_user_in_django(request: HttpRequest, message_launch: ExtendedDjangoMe
 
 
 @csrf_exempt
+@escape_request_data
 def login(request):
     target_link_uri = request.POST.get('target_link_uri', request.GET.get('target_link_uri'))
     if not target_link_uri:
