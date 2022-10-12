@@ -12,7 +12,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.html import escape
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 from pylti1p3.contrib.django import DjangoOIDCLogin, DjangoMessageLaunch, \
     DjangoCacheDataStorage, DjangoDbToolConf
 
@@ -49,7 +49,6 @@ def lti_error(error_message: Any) -> JsonResponse:
 
 
 def escape_request_data(view_func: Callable[[HttpRequest], HttpRequest]):
-
     def wrapper(*args: HttpRequest, **kwargs):
         request = args[0]
         logger.debug(request.method)
@@ -183,6 +182,7 @@ def create_user_in_django(request: HttpRequest, message_launch: ExtendedDjangoMe
 
 
 @csrf_exempt
+@require_http_methods(['GET', 'POST'])
 @escape_request_data
 def login(request):
     target_link_uri = request.POST.get('target_link_uri', request.GET.get('target_link_uri'))
