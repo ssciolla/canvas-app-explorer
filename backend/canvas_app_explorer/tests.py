@@ -12,6 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 def test_view_function(request: HttpRequest) -> JsonResponse:
+    """
+    Basic test view function that returns request data as JSON for GET and POST,
+    or an empty JSON response for other methods.
+    """
+
     if request.method in ['GET', 'POST']:
         return JsonResponse(getattr(request, request.method))
     return JsonResponse({})
